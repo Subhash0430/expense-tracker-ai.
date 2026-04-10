@@ -12,12 +12,20 @@ load_dotenv()
 # BASE DIRECTORY
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY
-SECRET_KEY = 'django-insecure-change-this-key'
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
+# ======================
+# 🔐 SECURITY
+# ======================
 
-# APPLICATIONS
+SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-secret-key")
+
+DEBUG = os.getenv("DEBUG", "True") == "True"
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+# ======================
+# 📦 APPLICATIONS
+# ======================
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,10 +38,16 @@ INSTALLED_APPS = [
     'tracker',
 ]
 
-# MIDDLEWARE
+# ======================
+# ⚙️ MIDDLEWARE
+# ======================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    # WhiteNoise for static files (IMPORTANT for deployment)
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -44,12 +58,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'expense_tracker.urls'
 
-# 🔥 TEMPLATES (FIXED)
+# ======================
+# 🖥️ TEMPLATES
+# ======================
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
 
-        # Project-level templates directory
+        # Global templates folder
         'DIRS': [BASE_DIR / 'templates'],
 
         'APP_DIRS': True,
@@ -65,7 +82,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'expense_tracker.wsgi.application'
 
-# DATABASE
+# ======================
+# 🗄️ DATABASE
+# ======================
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -73,7 +93,10 @@ DATABASES = {
     }
 }
 
-# PASSWORD VALIDATION
+# ======================
+# 🔑 PASSWORD VALIDATION
+# ======================
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -81,24 +104,44 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# LANGUAGE & TIME
+# ======================
+# 🌍 LANGUAGE & TIME
+# ======================
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# STATIC FILES
+# ======================
+# 📁 STATIC FILES
+# ======================
+
 STATIC_URL = 'static/'
+
+# Required for deployment
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# DEFAULT PRIMARY KEY
+# WhiteNoise static optimization
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ======================
+# 🔢 DEFAULT PRIMARY KEY
+# ======================
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# AUTH REDIRECTS
+# ======================
+# 🔐 AUTH REDIRECTS
+# ======================
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# 🔥 OPENAI API KEY
+# ======================
+# 🤖 API KEYS
+# ======================
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")

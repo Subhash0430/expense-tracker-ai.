@@ -1,0 +1,127 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-3">
+        <i class="bi bi-piggy-bank text-danger me-2"></i>Set Budget
+      </h5>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">{{ field.label }}</label>
+            {{ field }}
+          </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-danger w-100">Save Budget</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-3">This Month's Budgets</h5>
+      <table class="table">
+        <thead>
+          <tr><th>Category</th><th>Limit</th></tr>
+        </thead>
+        <tbody>
+          {% for b in budgets %}
+          <tr>
+            <td>{{ b.get_category_display }}</td>
+            <td class="fw-bold text-danger">₹{{ b.monthly_limit }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="text-muted text-center">No budgets set yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-2">
+        <i class="bi bi-robot me-2" style="color:#f953c6;"></i>Budget assistant
+      </h5>
+      <p class="text-muted small mb-3">
+        Try: “Set a budget for next month”. I’ll ask which <strong>category</strong>, which <strong>month</strong>, and how much in <strong>₹</strong>, then save after you say <strong>yes</strong>.
+        Say <strong>cancel</strong> anytime to stop.
+      </p>
+      <div id="budget-ai-box" class="border rounded-3 p-3 mb-3" style="min-height:140px; max-height:280px; overflow-y:auto; background:#f9f9fb;"></div>
+      <form id="budget-ai-form" class="d-flex gap-2 align-items-center">
+        {% csrf_token %}
+        <input id="budget-ai-msg" type="text" class="form-control" placeholder='e.g. Set a budget for next month' autocomplete="off">
+        <button type="submit" class="btn btn-primary" style="border-radius:12px;">Send</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+#budget-ai-box .user-msg { text-align: right; margin-bottom: 10px; }
+#budget-ai-box .ai-msg { text-align: left; margin-bottom: 10px; }
+#budget-ai-box .bubble {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 15px;
+  max-width: 92%;
+  font-size: 14px;
+  white-space: pre-wrap;
+  text-align: left;
+}
+#budget-ai-box .user-bubble { background: #f953c6; color: white; }
+#budget-ai-box .ai-bubble { background: white; border: 1px solid #e0e0e0; }
+</style>
+
+<script>
+(function () {
+  const box = document.getElementById('budget-ai-box');
+  const form = document.getElementById('budget-ai-form');
+  const input = document.getElementById('budget-ai-msg');
+  const url = "{% url 'budget_ai_api' %}";
+  const csrfInput = document.querySelector('#budget-ai-form input[name="csrfmiddlewaretoken"]');
+  const csrf = csrfInput ? csrfInput.value : '';
+
+  function appendBubble(isUser, text) {
+    const row = document.createElement('div');
+    row.className = isUser ? 'user-msg' : 'ai-msg';
+    const b = document.createElement('div');
+    b.className = 'bubble ' + (isUser ? 'user-bubble' : 'ai-bubble');
+    b.textContent = text;
+    row.appendChild(b);
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    appendBubble(true, message);
+    input.value = '';
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf
+        },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await res.json();
+      appendBubble(false, data.reply || 'No reply.');
+      if (data.saved) {
+        setTimeout(function () { window.location.reload(); }, 700);
+      }
+    } catch (err) {
+      appendBubble(false, 'Something went wrong. Please try again.');
+    }
+  });
+})();
+</script>
+{% endblock %}

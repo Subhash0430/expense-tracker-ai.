@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - ExpenseIQ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card { border: none; border-radius: 20px; }
+    .brand { color: #e94560; font-size: 2rem; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="card p-5 shadow-lg" style="width: 400px;">
+    <div class="text-center mb-4">
+      <div class="brand">💰 ExpenseIQ</div>
+      <p class="text-muted">Track smarter, save better</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-danger w-100 mt-2">Login</button>
+    </form>
+    <p class="text-center mt-3 text-muted">
+      Don't have an account? <a href="{% url 'register' %}">Register</a>
+    </p>
+  </div>
+</body>
+</html>

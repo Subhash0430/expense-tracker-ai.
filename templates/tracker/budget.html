@@ -21,23 +21,25 @@
   <div class="col-md-7">
     <div class="card p-4">
       <h5 class="fw-bold mb-3">This Month's Budgets</h5>
-      <table class="table">
-        <thead>
-          <tr><th>Category</th><th>Limit</th></tr>
-        </thead>
-        <tbody>
-          {% for b in budgets %}
-          <tr>
-            <td>{{ b.get_category_display }}</td>
-            <td class="fw-bold text-danger">₹{{ b.monthly_limit }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="2" class="text-muted text-center">No budgets set yet.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr><th>Category</th><th>Limit</th></tr>
+          </thead>
+          <tbody>
+            {% for b in budgets %}
+            <tr>
+              <td>{{ b.get_category_display }}</td>
+              <td class="fw-bold text-danger">₹{{ b.monthly_limit }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-muted text-center">No budgets set yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

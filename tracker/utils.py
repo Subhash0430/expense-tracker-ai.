@@ -51,6 +51,20 @@ def _infer_chat_limits(user_message):
     return max_lines, max_tokens
 
 
+def get_expense_chart_data(expenses):
+    category_data = {}
+    daily_data = {}
+    for exp in expenses:
+        # Category aggregation
+        cat = exp.get_category_display()
+        category_data[cat] = category_data.get(cat, 0) + float(exp.amount)
+        # Daily aggregation
+        day = exp.date.strftime('%d %b')
+        daily_data[day] = daily_data.get(day, 0) + float(exp.amount)
+    
+    return category_data, daily_data
+
+
 def get_budget_alerts(user, month, year):
     alerts = []
     budgets = Budget.objects.filter(user=user, month=month, year=year)

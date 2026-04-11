@@ -11,7 +11,7 @@ import json
 
 from .models import Expense, Budget, CATEGORY_CHOICES
 from .forms import RegisterForm, ExpenseForm, BudgetForm
-from .utils import get_budget_alerts, get_ai_suggestions, get_ai_chat_reply
+from .utils import get_budget_alerts, get_ai_suggestions, get_ai_chat_reply, get_expense_chart_data
 from .budget_ai import handle_budget_ai_conversation
 
 
@@ -56,15 +56,7 @@ def dashboard(request):
 
     total = expenses.aggregate(total=Sum('amount'))['total'] or 0
 
-    category_data = {}
-    for exp in expenses:
-        cat = exp.get_category_display()
-        category_data[cat] = category_data.get(cat, 0) + float(exp.amount)
-
-    daily_data = {}
-    for exp in expenses:
-        day = exp.date.strftime('%d %b')
-        daily_data[day] = daily_data.get(day, 0) + float(exp.amount)
+    category_data, daily_data = get_expense_chart_data(expenses)
 
     alerts = get_budget_alerts(request.user, month, year)
     recent_expenses = expenses[:5]
@@ -98,14 +90,21 @@ def add_expense(request):
     return render(request, 'tracker/add_expense.html', {'form': form})
 
 
+from django.core.paginator import Paginator
+
 @login_required
 def expense_list(request):
     expenses = Expense.objects.filter(user=request.user)
     category_filter = request.GET.get('category', '')
     if category_filter:
         expenses = expenses.filter(category=category_filter)
+        
+    paginator = Paginator(expenses, 15)  # Show 15 expenses per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'tracker/expense_list.html', {
-        'expenses': expenses,
+        'expenses': page_obj,  # Pass page_obj instead of the whole queryset
         'categories': CATEGORY_CHOICES,
         'selected': category_filter,
     })
@@ -165,7 +164,7 @@ def export_csv(request):
     response['Content-Disposition'] = 'attachment; filename="expenses.csv"'
     writer = csv.writer(response)
     writer.writerow(['Title', 'Amount', 'Category', 'Date', 'Note'])
-    for exp in Expense.objects.filter(user=request.user):
+    for exp in Expense.objects.filter(user=request.user).iterator():
         writer.writerow([exp.title, exp.amount, exp.get_category_display(), exp.date, exp.note])
     return response
 
@@ -180,15 +179,7 @@ def ai_suggestions(request):
     )
     total = expenses.aggregate(total=Sum('amount'))['total'] or 0
 
-    category_data = {}
-    for exp in expenses:
-        cat = exp.get_category_display()
-        category_data[cat] = category_data.get(cat, 0) + float(exp.amount)
-
-    daily_data = {}
-    for exp in expenses:
-        day = exp.date.strftime('%d %b')
-        daily_data[day] = daily_data.get(day, 0) + float(exp.amount)
+    category_data, daily_data = get_expense_chart_data(expenses)
 
     suggestion = get_ai_suggestions(request.user, today.month, today.year)
     return render(request, 'tracker/dashboard.html', {

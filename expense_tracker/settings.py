@@ -5,6 +5,7 @@ Django settings for expense_tracker project.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load .env file
 load_dotenv()
@@ -92,6 +93,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Build-time and environment-specific database configuration
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    DATABASES['default'] = dj_database_url.parse(database_url)
 
 # ======================
 # 🔑 PASSWORD VALIDATION
